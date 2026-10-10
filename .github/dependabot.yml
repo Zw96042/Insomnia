@@ -16,3 +16,11 @@ updates:
     commit-message:
       # Matches the repo's "Area: what changed" subject style.
       prefix: "CI"
+  - package-ecosystem: nuget
+    directory: /windows
+    schedule:
+      interval: weekly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "Windows"
