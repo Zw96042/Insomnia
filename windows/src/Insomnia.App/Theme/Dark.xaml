@@ -1,0 +1,120 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <!-- Dark palette. Keep the keys identical to Light.xaml;
+         values follow the Windows 11 theme resources. Every brush has a Color.* twin for effects. -->
+    <!-- Body text. -->
+    <Color x:Key="Color.TextPrimary">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.TextPrimary" Color="#FFFFFFFF" />
+    <!-- Descriptions and status lines. -->
+    <Color x:Key="Color.TextSecondary">#C5FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="#C5FFFFFF" />
+    <!-- Placeholders and hints. -->
+    <Color x:Key="Color.TextTertiary">#87FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.TextTertiary" Color="#87FFFFFF" />
+    <Color x:Key="Color.TextDisabled">#5DFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.TextDisabled" Color="#5DFFFFFF" />
+    <!-- Window background without Mica (Windows 10, high contrast off). -->
+    <Color x:Key="Color.SurfaceSolid">#FF202020</Color>
+    <SolidColorBrush x:Key="Brush.SurfaceSolid" Color="#FF202020" />
+    <!-- Flyout and dialog background without acrylic. -->
+    <Color x:Key="Color.FlyoutSolid">#FF2C2C2C</Color>
+    <SolidColorBrush x:Key="Brush.FlyoutSolid" Color="#FF2C2C2C" />
+    <!-- The flyout's footer band. -->
+    <Color x:Key="Color.FlyoutFooter">#26000000</Color>
+    <SolidColorBrush x:Key="Brush.FlyoutFooter" Color="#26000000" />
+    <!-- Settings content layer over Mica. -->
+    <Color x:Key="Color.LayerFill">#4C3A3A3A</Color>
+    <SolidColorBrush x:Key="Brush.LayerFill" Color="#4C3A3A3A" />
+    <Color x:Key="Color.LayerStroke">#19000000</Color>
+    <SolidColorBrush x:Key="Brush.LayerStroke" Color="#19000000" />
+    <Color x:Key="Color.CardFill">#0DFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.CardFill" Color="#0DFFFFFF" />
+    <!-- Nested rows inside a card. -->
+    <Color x:Key="Color.CardFillSecondary">#08FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.CardFillSecondary" Color="#08FFFFFF" />
+    <Color x:Key="Color.CardStroke">#19000000</Color>
+    <SolidColorBrush x:Key="Brush.CardStroke" Color="#19000000" />
+    <Color x:Key="Color.ControlFill">#0FFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlFill" Color="#0FFFFFFF" />
+    <Color x:Key="Color.ControlFillHover">#15FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlFillHover" Color="#15FFFFFF" />
+    <Color x:Key="Color.ControlFillPressed">#08FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlFillPressed" Color="#08FFFFFF" />
+    <Color x:Key="Color.ControlFillDisabled">#0BFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlFillDisabled" Color="#0BFFFFFF" />
+    <Color x:Key="Color.ControlStroke">#12FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlStroke" Color="#12FFFFFF" />
+    <!-- Bottom edge of buttons and inputs. -->
+    <Color x:Key="Color.ControlStrokeStrong">#18FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ControlStrokeStrong" Color="#18FFFFFF" />
+    <Color x:Key="Color.InputFill">#0FFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.InputFill" Color="#0FFFFFFF" />
+    <Color x:Key="Color.InputFillHover">#15FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.InputFillHover" Color="#15FFFFFF" />
+    <Color x:Key="Color.InputFillFocused">#B31E1E1E</Color>
+    <SolidColorBrush x:Key="Brush.InputFillFocused" Color="#B31E1E1E" />
+    <Color x:Key="Color.InputStrokeBottom">#8BFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.InputStrokeBottom" Color="#8BFFFFFF" />
+    <Color x:Key="Color.SubtleHover">#0FFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.SubtleHover" Color="#0FFFFFFF" />
+    <Color x:Key="Color.SubtlePressed">#0AFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.SubtlePressed" Color="#0AFFFFFF" />
+    <Color x:Key="Color.Divider">#15FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.Divider" Color="#15FFFFFF" />
+    <!-- The Days / Hours / Minutes wells. -->
+    <Color x:Key="Color.PillFill">#40000000</Color>
+    <SolidColorBrush x:Key="Brush.PillFill" Color="#40000000" />
+    <Color x:Key="Color.PillFillHover">#52000000</Color>
+    <SolidColorBrush x:Key="Brush.PillFillHover" Color="#52000000" />
+    <Color x:Key="Color.PillStroke">#14FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.PillStroke" Color="#14FFFFFF" />
+    <Color x:Key="Color.PillPlaceholder">#6BFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.PillPlaceholder" Color="#6BFFFFFF" />
+    <!-- Hold-to-end ring track. -->
+    <Color x:Key="Color.RingTrack">#26FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.RingTrack" Color="#26FFFFFF" />
+    <Color x:Key="Color.ToggleOffStroke">#9AFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ToggleOffStroke" Color="#9AFFFFFF" />
+    <Color x:Key="Color.ToggleOffKnob">#CCFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ToggleOffKnob" Color="#CCFFFFFF" />
+    <Color x:Key="Color.ToggleOffFill">#08FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ToggleOffFill" Color="#08FFFFFF" />
+    <Color x:Key="Color.MenuFill">#FF2C2C2C</Color>
+    <SolidColorBrush x:Key="Brush.MenuFill" Color="#FF2C2C2C" />
+    <Color x:Key="Color.MenuStroke">#33000000</Color>
+    <SolidColorBrush x:Key="Brush.MenuStroke" Color="#33000000" />
+    <Color x:Key="Color.ToolTipFill">#FF2C2C2C</Color>
+    <SolidColorBrush x:Key="Brush.ToolTipFill" Color="#FF2C2C2C" />
+    <Color x:Key="Color.ScrollThumb">#8BFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.ScrollThumb" Color="#8BFFFFFF" />
+    <!-- Keyboard focus ring. -->
+    <Color x:Key="Color.FocusOuter">#FFFFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.FocusOuter" Color="#FFFFFFFF" />
+    <Color x:Key="Color.FocusInner">#B3000000</Color>
+    <SolidColorBrush x:Key="Brush.FocusInner" Color="#B3000000" />
+    <Color x:Key="Color.Caution">#FFFCE100</Color>
+    <SolidColorBrush x:Key="Brush.Caution" Color="#FFFCE100" />
+    <Color x:Key="Color.Critical">#FFFF99A4</Color>
+    <SolidColorBrush x:Key="Brush.Critical" Color="#FFFF99A4" />
+    <Color x:Key="Color.Success">#FF6CCB5F</Color>
+    <SolidColorBrush x:Key="Brush.Success" Color="#FF6CCB5F" />
+    <Color x:Key="Color.CautionBackground">#FF433519</Color>
+    <SolidColorBrush x:Key="Brush.CautionBackground" Color="#FF433519" />
+    <Color x:Key="Color.CriticalBackground">#FF442726</Color>
+    <SolidColorBrush x:Key="Brush.CriticalBackground" Color="#FF442726" />
+    <Color x:Key="Color.InfoBackground">#08FFFFFF</Color>
+    <SolidColorBrush x:Key="Brush.InfoBackground" Color="#08FFFFFF" />
+    <!-- System accent (replaced at runtime). -->
+    <Color x:Key="Color.Accent">#FF60CDFF</Color>
+    <SolidColorBrush x:Key="Brush.Accent" Color="#FF60CDFF" />
+    <Color x:Key="Color.AccentHover">#E660CDFF</Color>
+    <SolidColorBrush x:Key="Brush.AccentHover" Color="#E660CDFF" />
+    <Color x:Key="Color.AccentPressed">#CC60CDFF</Color>
+    <SolidColorBrush x:Key="Brush.AccentPressed" Color="#CC60CDFF" />
+    <!-- Accent used as text (links). -->
+    <Color x:Key="Color.AccentText">#FF99EBFF</Color>
+    <SolidColorBrush x:Key="Brush.AccentText" Color="#FF99EBFF" />
+    <Color x:Key="Color.TextOnAccent">#FF000000</Color>
+    <SolidColorBrush x:Key="Brush.TextOnAccent" Color="#FF000000" />
+    <Color x:Key="Color.Shadow">#73000000</Color>
+</ResourceDictionary>
