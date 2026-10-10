@@ -1,0 +1,491 @@
+<Window x:Class="Insomnia.App.SettingsWindow"
+        x:ClassModifier="internal"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="clr-namespace:Insomnia.App.Controls"
+        Title="Insomnia Settings"
+        Width="980"
+        Height="720"
+        MinWidth="720"
+        MinHeight="520"
+        WindowStartupLocation="CenterScreen"
+        UseLayoutRounding="True"
+        FontFamily="{DynamicResource Font.Text}"
+        FontSize="14"
+        Foreground="{DynamicResource Brush.TextPrimary}">
+    <Window.Resources>
+        <BooleanToVisibilityConverter x:Key="Visible" />
+
+        <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Text.Title}">
+            <Setter Property="Margin" Value="0,0,0,4" />
+        </Style>
+        <Style x:Key="PageIntro" TargetType="TextBlock" BasedOn="{StaticResource Text.Body}">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+            <Setter Property="Margin" Value="0,4,0,20" />
+            <Setter Property="MaxWidth" Value="720" />
+            <Setter Property="HorizontalAlignment" Value="Left" />
+        </Style>
+        <Style x:Key="Group" TargetType="TextBlock" BasedOn="{StaticResource Text.BodyStrong}">
+            <Setter Property="Margin" Value="1,20,0,8" />
+        </Style>
+        <Style x:Key="Note" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+            <Setter Property="Margin" Value="0,8,0,0" />
+        </Style>
+        <Style x:Key="ErrorNote" TargetType="TextBlock" BasedOn="{StaticResource Text.Caption}">
+            <Setter Property="Foreground" Value="{DynamicResource Brush.Critical}" />
+            <Setter Property="Margin" Value="0,8,0,0" />
+            <Style.Triggers>
+                <Trigger Property="Text" Value="">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </Trigger>
+                <Trigger Property="Text" Value="{x:Null}">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+        <Style x:Key="Page" TargetType="StackPanel">
+            <Setter Property="Visibility" Value="Collapsed" />
+        </Style>
+
+        <!-- A row in an editable list: the name and a remove button. -->
+        <DataTemplate x:Key="NameRow">
+            <Border BorderBrush="{DynamicResource Brush.Divider}" BorderThickness="0,1,0,0" Padding="12,0,4,0" MinHeight="40">
+                <Grid>
+                    <TextBlock Text="{Binding}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,40,0" />
+                    <Button Style="{StaticResource Button.Icon}" Content="&#xE711;" FontSize="12" HorizontalAlignment="Right"
+                            Click="OnRemoveListItem" ToolTip="Remove"
+                            AutomationProperties.Name="{Binding StringFormat='Remove {0}'}" />
+                </Grid>
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="ListWell" TargetType="Border">
+            <Setter Property="Background" Value="{DynamicResource Brush.CardFillSecondary}" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.CardStroke}" />
+            <Setter Property="BorderThickness" Value="1,0,1,1" />
+            <Setter Property="CornerRadius" Value="4" />
+            <Setter Property="Margin" Value="0,0,0,12" />
+            <Setter Property="ClipToBounds" Value="True" />
+            <Style.Triggers>
+                <!-- An empty list shows no well at all, only the add row. -->
+                <DataTrigger Binding="{Binding Child.HasItems, RelativeSource={RelativeSource Self}}" Value="False">
+                    <Setter Property="Visibility" Value="Collapsed" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Preset chip: click to make it the default; × removes it. -->
+        <DataTemplate x:Key="PresetChipTemplate">
+            <Border x:Name="Chip" CornerRadius="16" Height="32" Margin="0,0,8,8" Padding="2,0,2,0"
+                    Background="{DynamicResource Brush.ControlFill}" BorderBrush="{DynamicResource Brush.ControlStroke}" BorderThickness="1">
+                <StackPanel Orientation="Horizontal">
+                    <Button x:Name="Label" Style="{StaticResource Button.Subtle}" c:Ui.CornerRadius="14" MinHeight="28" Height="28"
+                            Padding="12,0,8,0" Click="OnPresetClick" FontSize="13"
+                            ToolTip="Make this the default"
+                            AutomationProperties.Name="{Binding Label, StringFormat='Make {0} the default'}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="{Binding Label}" VerticalAlignment="Center" />
+                            <TextBlock x:Name="DefaultTag" Text="Default" Margin="8,0,0,0" FontSize="11" VerticalAlignment="Center" Visibility="Collapsed" Opacity="0.85" />
+                        </StackPanel>
+                    </Button>
+                    <Button Style="{StaticResource Button.Icon}" c:Ui.CornerRadius="12" Width="24" Height="24" FontSize="10" Content="&#xE711;"
+                            Margin="0,0,2,0" Click="OnPresetRemove" ToolTip="Remove"
+                            AutomationProperties.Name="{Binding Label, StringFormat='Remove {0}'}" />
+                </StackPanel>
+            </Border>
+            <DataTemplate.Triggers>
+                <DataTrigger Binding="{Binding IsDefault}" Value="True">
+                    <Setter TargetName="Chip" Property="Background" Value="{DynamicResource Brush.Accent}" />
+                    <Setter TargetName="Chip" Property="BorderBrush" Value="Transparent" />
+                    <Setter TargetName="Label" Property="Foreground" Value="{DynamicResource Brush.TextOnAccent}" />
+                    <Setter TargetName="Label" Property="c:Ui.HoverBackground" Value="{DynamicResource Brush.AccentHover}" />
+                    <Setter TargetName="Label" Property="c:Ui.PressedBackground" Value="{DynamicResource Brush.AccentPressed}" />
+                    <Setter TargetName="Label" Property="c:Ui.PressedForeground" Value="{DynamicResource Brush.TextOnAccent}" />
+                    <Setter TargetName="Label" Property="ToolTip" Value="The default preset" />
+                    <Setter TargetName="DefaultTag" Property="Visibility" Value="Visible" />
+                </DataTrigger>
+            </DataTemplate.Triggers>
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300" />
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!-- Navigation -->
+        <DockPanel Margin="16,16,8,16">
+            <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Margin="8,4,0,20">
+                <c:EyeMark x:Name="Mark" Width="36" Height="36" Foreground="{DynamicResource Brush.TextPrimary}" />
+                <StackPanel Margin="14,0,0,0" VerticalAlignment="Center">
+                    <TextBlock Style="{StaticResource Text.BodyStrong}" Text="Insomnia" />
+                    <TextBlock Style="{StaticResource Text.Caption}" Text="Timed awake sessions" />
+                </StackPanel>
+            </StackPanel>
+            <ListBox x:Name="Nav" Style="{StaticResource NavList}" SelectedIndex="0" AutomationProperties.Name="Settings sections">
+                <ListBoxItem AutomationProperties.Name="Session">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE823;" Margin="0,0,16,0" />
+                        <TextBlock Text="Session" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.Name="Lid close">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE7F8;" Margin="0,0,16,0" />
+                        <TextBlock Text="Lid close" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.Name="Agent apps">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE943;" Margin="0,0,16,0" />
+                        <TextBlock Text="Agent apps" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.Name="Battery and thermal">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE83F;" Margin="0,0,16,0" />
+                        <TextBlock Text="Battery &amp; thermal" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.Name="Network">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE701;" Margin="0,0,16,0" />
+                        <TextBlock Text="Network" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+                <ListBoxItem AutomationProperties.Name="General">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE713;" Margin="0,0,16,0" />
+                        <TextBlock Text="General" VerticalAlignment="Center" />
+                    </StackPanel>
+                </ListBoxItem>
+            </ListBox>
+        </DockPanel>
+
+        <!-- Content -->
+        <Grid Grid.Column="1">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+            </Grid.RowDefinitions>
+            <Grid Margin="40,24,40,0" MaxWidth="1000">
+                <TextBlock x:Name="PageHeading" Style="{StaticResource PageTitle}" Text="Session" />
+                <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding SaveStatusText}" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="0,0,0,10"
+                           AutomationProperties.LiveSetting="Polite" />
+            </Grid>
+            <Border Grid.Row="1" Margin="40,8,40,0" MaxWidth="1000">
+                <Border.Style>
+                    <Style TargetType="Border" BasedOn="{StaticResource InfoBar.Critical}">
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding SaveError}" Value="{x:Null}">
+                                <Setter Property="Visibility" Value="Collapsed" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock Style="{StaticResource Text.Icon}" Text="&#xEA39;" Foreground="{DynamicResource Brush.Critical}" VerticalAlignment="Top" Margin="0,1,12,0" />
+                    <StackPanel Grid.Column="1">
+                        <TextBlock Style="{StaticResource Text.BodyStrong}" Text="Settings not saved" />
+                        <TextBlock Style="{StaticResource Text.Body}" Text="{Binding SaveError}" Margin="0,2,0,0" />
+                        <TextBlock Style="{StaticResource Text.Caption}" Text="Your changes stay here until they can be saved." Margin="0,4,0,0" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <ScrollViewer x:Name="Scroller" Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Focusable="False" Margin="0,8,0,0">
+                <Grid x:Name="Pages" Margin="40,8,40,40" MaxWidth="1000">
+
+                    <!-- Session -->
+                    <StackPanel x:Name="SessionPage" Style="{StaticResource Page}" Visibility="Visible">
+                        <TextBlock Style="{StaticResource PageIntro}" Text="A session always has an end time. Pick a duration in the flyout, or one of these presets." />
+                        <c:SettingsCard Header="Presets" Icon="&#xE916;"
+                                        Description="Offered as chips in the flyout. Select one to make it the default: pressing Enter with every field empty starts it.">
+                            <c:SettingsCard.Footer>
+                                <StackPanel>
+                                    <ItemsControl ItemsSource="{Binding Presets}" ItemTemplate="{StaticResource PresetChipTemplate}" Focusable="False">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
+                                    </ItemsControl>
+                                    <Grid Margin="0,4,0,0" MaxWidth="440" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewPreset" c:Ui.Placeholder="Add a preset: 30m, 2h, 1h30m, 3d" KeyDown="OnAddKeyDown" Tag="preset"
+                                                 AutomationProperties.Name="New preset" />
+                                        <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" MinWidth="72" Click="OnAddPreset" />
+                                    </Grid>
+                                    <TextBlock x:Name="PresetError" Style="{StaticResource ErrorNote}" />
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Longest session" Icon="&#xE823;" Description="Extensions included. Insomnia never holds sleep off past this.">
+                            <TextBlock Text="{Binding MaxDurationLabel}" Foreground="{DynamicResource Brush.TextSecondary}" />
+                        </c:SettingsCard>
+                    </StackPanel>
+
+                    <!-- Lid close -->
+                    <StackPanel x:Name="LidPage" Style="{StaticResource Page}">
+                        <TextBlock Style="{StaticResource PageIntro}"
+                                   Text="These run only during a session, when the lid closes, and are undone when it opens. Without a session, closing the lid does what Windows normally does." />
+                        <c:SettingsCard Header="Freeze while the lid is closed" Icon="&#xE769;"
+                                        Description="These apps are suspended while the lid is closed and resumed when it opens. Agent apps are never frozen.">
+                            <c:SettingsCard.Footer>
+                                <StackPanel>
+                                    <Border Style="{StaticResource ListWell}">
+                                        <ItemsControl x:Name="FreezeItems" Tag="freeze" ItemsSource="{Binding FreezeList}" ItemTemplate="{StaticResource NameRow}" Focusable="False" />
+                                    </Border>
+                                    <Grid MaxWidth="560" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewFreeze" c:Ui.Placeholder="App to freeze, for example slack.exe" KeyDown="OnAddKeyDown" Tag="freeze"
+                                                 AutomationProperties.Name="App to freeze" />
+                                        <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" MinWidth="72" Click="OnAddFreeze" />
+                                        <Button x:Name="FreezeRunning" Grid.Column="2" Content="Add running app…" Margin="8,0,0,0" Click="OnAddRunningFreeze" />
+                                    </Grid>
+                                    <TextBlock x:Name="FreezeError" Style="{StaticResource ErrorNote}" />
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Freeze every other app while the lid is closed" Icon="&#xE71D;"
+                                        Description="Also suspends every other app with a window, except agent apps, Windows components, Docker Desktop and built-in protected apps: editors, terminals, browsers, AI apps, password managers, local databases, Tailscale, local model servers, and meeting, recording and dictation apps. Off by default.">
+                            <c:ToggleSwitch IsChecked="{Binding FreezeAllApps, Mode=TwoWay}" AutomationProperties.Name="Freeze every other app while the lid is closed" />
+                            <c:SettingsCard.Footer>
+                                <TextBlock Style="{StaticResource Text.Caption}" Text="{Binding WouldFreeze}" AutomationProperties.LiveSetting="Polite" />
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Pause Docker Desktop when no containers are running" Icon="&#xE7B8;"
+                                        Description="Off by default. Docker Desktop is paused only if a second check, right before the pause, still finds no running container. A container that starts in that last moment is paused with it.">
+                            <c:ToggleSwitch IsChecked="{Binding DockerRule, Mode=TwoWay}" AutomationProperties.Name="Pause Docker Desktop when no containers are running" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Mute audio on lid close" Icon="&#xE74F;"
+                                        Description="Mutes the default output and puts its volume back when the lid opens.">
+                            <c:ToggleSwitch IsChecked="{Binding MuteOnLidClose, Mode=TwoWay}" AutomationProperties.Name="Mute audio on lid close" />
+                            <c:SettingsCard.Footer>
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Style="{StaticResource Text.Icon}" FontSize="14" Text="&#xE720;" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,1,8,0" VerticalAlignment="Top" />
+                                    <TextBlock Style="{StaticResource Text.Caption}" MaxWidth="640"
+                                               Text="Many laptops disconnect the built-in microphone when the lid closes. For a meeting with the lid closed, use a headset or an external mic." />
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Turn displays off on lid close" Icon="&#xE7F4;"
+                                        Description="Asks every display to power off while the lid is closed, and wakes them when it opens.">
+                            <c:ToggleSwitch IsChecked="{Binding DisplaysOffOnLidClose, Mode=TwoWay}" AutomationProperties.Name="Turn displays off on lid close" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Power saving while the lid is closed" Icon="&#xE83F;"
+                                        Description="Switches Windows to the Best power efficiency power mode while the lid is closed. With sleep held off, a closed laptop otherwise keeps running at full speed.">
+                            <c:ToggleSwitch IsChecked="{Binding PowerSavingOnLidClose, Mode=TwoWay}" AutomationProperties.Name="Power saving while the lid is closed" />
+                        </c:SettingsCard>
+                    </StackPanel>
+
+                    <!-- Agent apps -->
+                    <StackPanel x:Name="AgentPage" Style="{StaticResource Page}">
+                        <TextBlock Style="{StaticResource PageIntro}"
+                                   Text="The apps doing your long-running work: terminals, editors, AI apps, browsers. They are never frozen, whatever the lid-close settings say." />
+                        <c:SettingsCard Header="Agent apps" Icon="&#xE943;" Description="Matched by executable name, ignoring case.">
+                            <c:SettingsCard.Footer>
+                                <StackPanel>
+                                    <Border Style="{StaticResource ListWell}">
+                                        <ItemsControl x:Name="AgentItems" Tag="agent" ItemsSource="{Binding AgentList}" ItemTemplate="{StaticResource NameRow}" Focusable="False" />
+                                    </Border>
+                                    <Grid MaxWidth="560" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewAgent" c:Ui.Placeholder="Agent app, for example WindowsTerminal.exe" KeyDown="OnAddKeyDown" Tag="agent"
+                                                 AutomationProperties.Name="Agent app" />
+                                        <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" MinWidth="72" Click="OnAddAgent" />
+                                        <Button x:Name="AgentRunning" Grid.Column="2" Content="Add running app…" Margin="8,0,0,0" Click="OnAddRunningAgent" />
+                                    </Grid>
+                                    <TextBlock x:Name="AgentError" Style="{StaticResource ErrorNote}" />
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Turn off power throttling for agent apps during a session" Icon="&#xE945;"
+                                        Description="Exempts running agent apps from Windows power throttling (EcoQoS) while a session runs, so background work keeps full speed with the lid closed. Each app's previous setting is put back when the session ends. Off: Insomnia never changes another app's settings.">
+                            <c:ToggleSwitch IsChecked="{Binding DisableThrottlingForAgents, Mode=TwoWay}" AutomationProperties.Name="Turn off power throttling for agent apps during a session" />
+                        </c:SettingsCard>
+                    </StackPanel>
+
+                    <!-- Battery & thermal -->
+                    <StackPanel x:Name="BatteryPage" Style="{StaticResource Page}">
+                        <TextBlock Style="{StaticResource PageIntro}"
+                                   Text="Floors apply on battery only. The end floor stays below the power-saving floor; moving one onto the other moves it along." />
+                        <c:SettingsCard Header="Power saving below" Icon="&#xE83F;"
+                                        Description="Switches to Best power efficiency when the battery drops below this level during a session.">
+                            <c:Stepper Value="{Binding LowPowerFloor, Mode=TwoWay}" Minimum="0" Maximum="100" Step="{Binding FloorStep}" Suffix="%"
+                                       AutomationProperties.Name="Power saving below, percent" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="End the session below" Icon="&#xE7E8;"
+                                        Description="Ends the session when the battery drops below this level. 0 turns the battery end off.">
+                            <c:Stepper Value="{Binding EndFloor, Mode=TwoWay}" Minimum="0" Maximum="{Binding MaxEndFloor}" Step="{Binding FloorStep}" Suffix="%" MinimumLabel="Off"
+                                       AutomationProperties.Name="End the session below, percent" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Thermal rules" Icon="&#xE706;"
+                                        Description="Power saving when the PC stays throttled by heat, and the session ends when throttling turns heavy. On PCs that don't report thermal zones to Windows, these rules never fire.">
+                            <c:ToggleSwitch IsChecked="{Binding ThermalRules, Mode=TwoWay}" AutomationProperties.Name="Thermal rules" />
+                        </c:SettingsCard>
+                    </StackPanel>
+
+                    <!-- Network -->
+                    <StackPanel x:Name="NetworkPage" Style="{StaticResource Page}">
+                        <TextBlock Style="{StaticResource PageIntro}"
+                                   Text="When Wi-Fi is down for 5 seconds during a session, Insomnia joins your phone's hotspot so agent API calls keep working." />
+                        <c:SettingsCard Header="Hotspot name" Icon="&#xE701;" Description="The hotspot's Wi-Fi name (SSID). Leave it empty to turn failover off.">
+                            <TextBox Width="260" Text="{Binding HotspotSsid, UpdateSourceTrigger=LostFocus}" KeyDown="OnCommitOnEnter"
+                                     c:Ui.Placeholder="For example Pixel 8" AutomationProperties.Name="Hotspot name" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Hotspot password" Icon="&#xE72E;"
+                                        Description="Kept in Windows Credential Manager, never in the settings file. Windows asks for location access the first time Insomnia looks for the hotspot; it uses it only to read Wi-Fi names.">
+                            <c:SettingsCard.Footer>
+                                <StackPanel>
+                                    <StackPanel Orientation="Horizontal">
+                                        <PasswordBox x:Name="HotspotPassword" Width="260" KeyDown="OnPasswordKeyDown" AutomationProperties.Name="Hotspot password" />
+                                        <Button Content="Save password" Margin="8,0,0,0" Click="OnSavePassword" />
+                                        <Button Content="Remove" Margin="8,0,0,0" Click="OnClearPassword" IsEnabled="{Binding HasHotspotPassword}" />
+                                    </StackPanel>
+                                    <TextBlock Style="{StaticResource Note}" Text="{Binding HotspotPasswordStatus}" />
+                                    <TextBlock x:Name="HotspotMessage" Text="{Binding HotspotMessage}" AutomationProperties.LiveSetting="Polite">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock" BasedOn="{StaticResource Note}">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HotspotMessage}" Value="{x:Null}">
+                                                        <Setter Property="Visibility" Value="Collapsed" />
+                                                    </DataTrigger>
+                                                    <DataTrigger Binding="{Binding HotspotMessageIsError}" Value="True">
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.Critical}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+
+                        <TextBlock Style="{StaticResource Group}" Text="tmux nudge" />
+                        <c:SettingsCard Header="Nudge tmux after" Icon="&#xE756;"
+                                        Description="After a network gap this long, Insomnia types &quot;continue&quot; into each pane listed below. Only a pane you have marked is nudged.">
+                            <c:Stepper Value="{Binding NudgeThreshold, Mode=TwoWay}" Minimum="0" Maximum="3600" Step="15" Suffix=" s"
+                                       AutomationProperties.Name="Nudge tmux after, seconds" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Panes to nudge" Icon="&#xE756;" Description="tmux targets as session:window.pane.">
+                            <c:SettingsCard.Footer>
+                                <StackPanel>
+                                    <Border Style="{StaticResource ListWell}">
+                                        <ItemsControl x:Name="TmuxItems" Tag="tmux" ItemsSource="{Binding TmuxTargets}" ItemTemplate="{StaticResource NameRow}" Focusable="False" />
+                                    </Border>
+                                    <Grid MaxWidth="440" HorizontalAlignment="Left">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <TextBox x:Name="NewTmux" c:Ui.Placeholder="session:window.pane, for example work:1.0" KeyDown="OnAddKeyDown" Tag="tmux"
+                                                 FontFamily="Cascadia Mono, Consolas" AutomationProperties.Name="tmux target" />
+                                        <Button Grid.Column="1" Content="Add" Margin="8,0,0,0" MinWidth="72" Click="OnAddTmux" />
+                                    </Grid>
+                                    <TextBlock x:Name="TmuxError" Style="{StaticResource ErrorNote}" />
+                                    <TextBlock Style="{StaticResource Note}" TextWrapping="Wrap" MaxWidth="640" HorizontalAlignment="Left">
+                                        <Run Text="Mark a pane by running" />
+                                        <Run Text="tmux set -p @insomnia-nudge on" FontFamily="Cascadia Mono, Consolas" />
+                                        <Run Text="in it. Mark a dedicated pane, not one you type in." />
+                                    </TextBlock>
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Press Enter after continue" Icon="&#xE751;"
+                                        Description="Enter submits whatever is already typed in that pane, including a line that was never finished. When off, &quot;continue&quot; is typed and nothing submits it.">
+                            <c:ToggleSwitch IsChecked="{Binding TmuxNudgePressesEnter, Mode=TwoWay}" AutomationProperties.Name="Press Enter after continue" />
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="tmux command" Icon="&#xE756;"
+                                        Description="How Insomnia reaches tmux, split on spaces. The default runs it in your default WSL distribution.">
+                            <TextBox Width="260" Text="{Binding TmuxCommand, UpdateSourceTrigger=LostFocus}" KeyDown="OnCommitOnEnter"
+                                     FontFamily="Cascadia Mono, Consolas" AutomationProperties.Name="tmux command" />
+                        </c:SettingsCard>
+                    </StackPanel>
+
+                    <!-- General -->
+                    <StackPanel x:Name="GeneralPage" Style="{StaticResource Page}">
+                        <c:SettingsCard Header="Launch at login" Icon="&#xE7E8;" Description="Start Insomnia when you sign in to Windows.">
+                            <c:ToggleSwitch IsChecked="{Binding LaunchAtLogin, Mode=TwoWay}" AutomationProperties.Name="Launch at login" />
+                            <c:SettingsCard.Footer>
+                                <StackPanel Visibility="{Binding ShowStartupNote, Converter={StaticResource Visible}}">
+                                    <TextBlock Style="{StaticResource Text.Caption}" Foreground="{DynamicResource Brush.Caution}"
+                                               Text="Turned off in Task Manager &gt; Startup apps. Turn it back on there."
+                                               Visibility="{Binding StartupDisabledByUser, Converter={StaticResource Visible}}" />
+                                    <TextBlock Style="{StaticResource ErrorNote}" Text="{Binding StartupError}" />
+                                </StackPanel>
+                            </c:SettingsCard.Footer>
+                        </c:SettingsCard>
+                        <c:SettingsCard Header="Logs" Icon="&#xE838;" Description="{Binding LogsFolder}">
+                            <Button Content="Open logs folder" Click="OnOpenLogs" />
+                        </c:SettingsCard>
+
+                        <TextBlock Style="{StaticResource Group}" Text="Safety" />
+                        <Border Style="{StaticResource InfoBar.Caution}">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <TextBlock Style="{StaticResource Text.Icon}" Text="&#xE7BA;" Foreground="{DynamicResource Brush.Caution}" VerticalAlignment="Top" Margin="0,1,12,0" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Style="{StaticResource Text.BodyStrong}" Text="Use on a stable, well-ventilated surface, never in a bag." />
+                                    <TextBlock Style="{StaticResource Text.Body}" Margin="0,2,0,0"
+                                               Text="Insomnia keeps a closed laptop running. Recovery can fail, and a running timer is not a safety guarantee." />
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+
+                        <TextBlock Style="{StaticResource Group}" Text="About" />
+                        <Border Style="{StaticResource Card}" Padding="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                </Grid.ColumnDefinitions>
+                                <c:EyeMark x:Name="AboutMark" Width="40" Height="40" Margin="0,0,16,0" VerticalAlignment="Top" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                <StackPanel Grid.Column="1">
+                                    <TextBlock Style="{StaticResource Text.BodyStrong}" Text="Insomnia for Windows" />
+                                    <TextBlock x:Name="VersionText" Style="{StaticResource Text.Caption}" Margin="0,2,0,0" />
+                                    <TextBlock Style="{StaticResource Text.Body}" Margin="0,10,0,0" MaxWidth="640" HorizontalAlignment="Left"
+                                               Text="A Windows port of Insomnia, the macOS menu bar app for timed awake sessions by Krish Garg. MIT licensed." />
+                                    <WrapPanel Margin="-6,8,0,0">
+                                        <Button Style="{StaticResource Button.Link}" Click="OnOpenUpstream" AutomationProperties.Name="Insomnia on GitHub">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="Insomnia on GitHub" />
+                                                <TextBlock FontFamily="{DynamicResource Font.Icons}" FontSize="12" Text="&#xE8A7;" Margin="6,2,0,0" />
+                                            </StackPanel>
+                                        </Button>
+                                        <Button x:Name="PortLink" Style="{StaticResource Button.Link}" Click="OnOpenPort" Margin="8,0,0,0" AutomationProperties.Name="This port on GitHub">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="This Windows port" />
+                                                <TextBlock FontFamily="{DynamicResource Font.Icons}" FontSize="12" Text="&#xE8A7;" Margin="6,2,0,0" />
+                                            </StackPanel>
+                                        </Button>
+                                    </WrapPanel>
+                                </StackPanel>
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </Grid>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</Window>
