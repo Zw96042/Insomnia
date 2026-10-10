@@ -1,0 +1,10 @@
+bin/
+obj/
+artifacts/
+*.user
+.vs/
+TestResults/
+
+# The root .gitignore drops macOS *.app bundles; git matches that
+# case-insensitively on macOS and Windows, which would hide this project.
+!src/Insomnia.App/
