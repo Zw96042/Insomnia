@@ -23,21 +23,22 @@
 Requires **Windows 10 version 2004 (build 19041) or later**, on x64 or Arm64.
 No administrator rights are needed.
 
-1. Download `Insomnia-<version>-win-x64.zip` (or `-win-arm64.zip`) and
-   `SHA256SUMS` from the newest `windows-v*` release on the releases page. Releases are
-   marked Pre-release.
+1. Download `Insomnia-<version>-win-x64.zip` (or `-win-arm64.zip` on Arm
+   PCs) and `SHA256SUMS` from the
+   [latest Windows release](https://github.com/Zw96042/Insomnia/releases/tag/windows-v0.1.0).
+   Releases are tagged `windows-v<version>` and marked Pre-release.
 2. Verify the download in PowerShell. `gh` is the
    [GitHub CLI](https://cli.github.com).
 
    ```powershell
    (Get-FileHash .\Insomnia-<version>-win-x64.zip -Algorithm SHA256).Hash.ToLower()
    Get-Content .\SHA256SUMS
-   gh attestation verify .\Insomnia-<version>-win-x64.zip -R <owner>/Insomnia `
-     --signer-workflow <owner>/Insomnia/.github/workflows/windows.yml `
+   gh attestation verify .\Insomnia-<version>-win-x64.zip -R Zw96042/Insomnia `
+     --signer-workflow Zw96042/Insomnia/.github/workflows/windows.yml `
      --source-ref refs/tags/windows-v<version>
    ```
 
-   `<owner>` is the account you downloaded from. The two hashes must
+   The two hashes must
    match. The `gh` command checks that the repository's Windows workflow
    built this exact zip for that tag. Windows releases are tagged
    `windows-v<version>`; plain `v<version>` tags are the macOS app.

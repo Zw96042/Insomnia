@@ -30,7 +30,10 @@
 
 > **On Windows?** A native Windows port lives in [`windows/`](windows/README.md):
 > the same timed sessions, lid-close actions, floors and crash recovery, built
-> with .NET for Windows 10 and 11. This README covers the macOS app.
+> with .NET for Windows 10 and 11. Download it from the
+> [Windows release](https://github.com/Zw96042/Insomnia/releases/tag/windows-v0.1.0)
+> and follow the [install steps](windows/README.md#install). This README covers
+> the macOS app.
 
 > **Use a stable, well-ventilated surface—not a closed bag.** Insomnia is
 > experimental software. Recovery can fail; a running timer is not a safety
