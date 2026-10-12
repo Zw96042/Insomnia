@@ -25,7 +25,15 @@
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/License-MIT-536D78?style=flat-square"></a>
   <img alt="macOS 26 or later" src="https://img.shields.io/badge/macOS-26%2B-303336?style=flat-square">
   <img alt="Experimental source build" src="https://img.shields.io/badge/Status-experimental-536D78?style=flat-square">
+  <a href="windows/README.md"><img alt="Windows 10 and 11 port" src="https://img.shields.io/badge/Windows-10%20%7C%2011-303336?style=flat-square"></a>
 </p>
+
+> **On Windows?** A native Windows port lives in [`windows/`](windows/README.md):
+> the same timed sessions, lid-close actions, floors and crash recovery, built
+> with .NET for Windows 10 and 11. Download it from the
+> [Windows release](https://github.com/Zw96042/Insomnia/releases/tag/windows-v0.1.0)
+> and follow the [install steps](windows/README.md#install). This README covers
+> the macOS app.
 
 > **Use a stable, well-ventilated surface—not a closed bag.** Insomnia is
 > experimental software. Recovery can fail; a running timer is not a safety

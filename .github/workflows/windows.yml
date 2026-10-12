@@ -1,0 +1,137 @@
+name: Windows
+
+# The Windows port in windows/: engine tests on Windows and Linux, a build
+# and publish for x64 and Arm64, a smoke run of the recovery entry point,
+# and the install-script lint. Tags named windows-v* also publish a release;
+# the macOS app keeps release.yml and its v* tags.
+on:
+  push:
+    branches: [main]
+    tags: ['windows-v*']
+    paths: ['windows/**', '.github/workflows/windows.yml']
+  pull_request:
+    paths: ['windows/**', '.github/workflows/windows.yml']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: windows-${{ github.event_name == 'pull_request' && github.ref || github.sha }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  test:
+    name: Engine tests (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 20
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Test the engine
+        run: dotnet test windows/tests/Insomnia.Core.Tests -c Release
+
+  build:
+    name: Build (${{ matrix.runtime }})
+    needs: test
+    runs-on: windows-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Build the solution
+        run: dotnet build windows/Insomnia.sln -c Release
+      - name: Publish
+        run: >
+          dotnet publish windows/src/Insomnia.App/Insomnia.App.csproj -c Release -r ${{ matrix.runtime }}
+          --self-contained true -p:PublishSingleFile=true
+          -o windows/artifacts/publish/${{ matrix.runtime }}
+      - name: Smoke-test the command-line entry points
+        if: matrix.runtime == 'win-x64'
+        shell: pwsh
+        env:
+          INSOMNIA_HOME: ${{ runner.temp }}\insomnia-home
+        run: |
+          $exe = 'windows/artifacts/publish/win-x64/Insomnia.exe'
+          foreach ($arg in '--recover', '--version') {
+            $p = Start-Process -FilePath $exe -ArgumentList $arg -Wait -PassThru
+            if ($p.ExitCode -ne 0) { throw "$arg exited $($p.ExitCode)" }
+          }
+      - name: Lint the install scripts
+        if: matrix.runtime == 'win-x64'
+        shell: pwsh
+        run: |
+          Install-Module PSScriptAnalyzer -Scope CurrentUser -Force
+          $issues = Invoke-ScriptAnalyzer -Path windows/scripts -Recurse -Settings windows/scripts/PSScriptAnalyzerSettings.psd1
+          if ($issues) { $issues | Format-Table -AutoSize | Out-String -Width 250; throw 'PSScriptAnalyzer found issues' }
+
+  release:
+    name: Publish Windows release
+    needs: build
+    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/windows-v')
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Set up .NET
+        uses: actions/setup-dotnet@a98b56852c35b8e3190ac28c8c2271da59106c68 # v6.0.0
+        with:
+          dotnet-version: 10.0.x
+      - name: Check the tag matches the version
+        shell: pwsh
+        run: |
+          $version = ([xml](Get-Content windows/Directory.Build.props)).Project.PropertyGroup.Version
+          if ("windows-v$version" -ne $env:GITHUB_REF_NAME) { throw "Tag $env:GITHUB_REF_NAME does not match version $version" }
+          "VERSION=$version" >> $env:GITHUB_ENV
+      - name: Package
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist | Out-Null
+          foreach ($rid in 'win-x64', 'win-arm64') {
+            $name = "Insomnia-$env:VERSION-$rid"
+            $stage = "stage/$name"
+            dotnet publish windows/src/Insomnia.App/Insomnia.App.csproj -c Release -r $rid --self-contained true `
+              -p:PublishSingleFile=true -o "$stage/app"
+            if ($LASTEXITCODE -ne 0) { throw "publish $rid failed" }
+            Copy-Item windows/scripts/install.ps1, windows/scripts/uninstall.ps1, windows/scripts/common.ps1, windows/README.md, LICENSE -Destination $stage
+            Compress-Archive -Path "$stage/*" -DestinationPath "dist/$name.zip"
+          }
+          Push-Location dist
+          Get-ChildItem *.zip | ForEach-Object {
+            "$((Get-FileHash $_.Name -Algorithm SHA256).Hash.ToLower())  $($_.Name)"
+          } | Set-Content -Encoding ascii SHA256SUMS
+          Pop-Location
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: dist/*.zip
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create $env:GITHUB_REF_NAME dist/Insomnia-*.zip dist/SHA256SUMS --prerelease --title "Insomnia for Windows $env:GITHUB_REF_NAME" --generate-notes

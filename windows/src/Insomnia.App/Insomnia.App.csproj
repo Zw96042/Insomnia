@@ -1,0 +1,41 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.19041.0</TargetFramework>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>Insomnia.App</RootNamespace>
+    <AssemblyName>Insomnia</AssemblyName>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <StartupObject>Insomnia.App.Program</StartupObject>
+    <!-- English UI only: drop the framework's localized resource satellites. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <!-- Program.Main owns startup (single instance, recovery and demo switches), so App.xaml is compiled as a page. -->
+    <EnableDefaultApplicationDefinition>false</EnableDefaultApplicationDefinition>
+    <!-- LibraryImport source generation. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <!--
+      WFO0003 asks Windows Forms apps to set DPI awareness through
+      Application.SetHighDpiMode. This is a WPF app that only borrows
+      NotifyIcon: WPF needs per-monitor v2 declared in the manifest before its
+      first window, and Windows Forms' Application.Run never runs here.
+    -->
+    <NoWarn>$(NoWarn);WFO0003</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <!--
+      WPF and Windows Forms both define Application, Button, Color, Point and
+      friends. Only the tray icon uses Windows Forms (NotifyIcon), so keep its
+      namespaces out of the implicit usings and qualify them there.
+    -->
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+    <!-- WPF leaves System.IO out of the implicit usings (Path clashes with Shapes.Path, which this app does not use). -->
+    <Using Include="System.IO" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Insomnia.Core\Insomnia.Core.csproj" />
+    <ProjectReference Include="..\Insomnia.Windows\Insomnia.Windows.csproj" />
+  </ItemGroup>
+</Project>
