@@ -16,9 +16,7 @@ public sealed class LidPolicy : ILidPolicy
     /// <summary>GUID_LIDCLOSE_ACTION.</summary>
     private static readonly Guid LidCloseAction = new("5ca83367-6e45-459f-a27b-476b1d01c936");
 
-    private readonly Lazy<bool> _hasLid = new(ReadHasLid);
-
-    public bool HasLid => _hasLid.Value;
+    public bool HasLid => PowerCapabilities.HasLid;
 
     public Guid? ActiveScheme()
     {
@@ -109,21 +107,5 @@ public sealed class LidPolicy : ILidPolicy
         }
         Log.Info($"Lid policy: set AC {ac} / DC {dc} on active scheme {scheme}");
         return true;
-    }
-
-    private static unsafe bool ReadHasLid()
-    {
-        var capabilities = stackalloc byte[SystemPowerCapabilitiesSize];
-        var status = CallNtPowerInformation(SystemPowerCapabilities, null, 0, capabilities, SystemPowerCapabilitiesSize);
-        if (status != 0)
-        {
-            // Assume a lid: applying a lid policy on a desktop is harmless,
-            // missing it on a laptop is not.
-            Log.Warn($"Lid policy: reading power capabilities failed (NTSTATUS 0x{status:X8}); assuming a lid");
-            return true;
-        }
-        var hasLid = capabilities[LidPresentOffset] != 0;
-        Log.Info($"Lid policy: lid {(hasLid ? "present" : "absent")}, Modern Standby {(capabilities[AoAcOffset] != 0 ? "yes" : "no")}");
-        return hasLid;
     }
 }

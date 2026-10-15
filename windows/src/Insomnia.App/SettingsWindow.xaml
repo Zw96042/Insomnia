@@ -283,7 +283,7 @@
                             </c:SettingsCard.Footer>
                         </c:SettingsCard>
                         <c:SettingsCard Header="Turn displays off on lid close" Icon="&#xE7F4;"
-                                        Description="Asks every display to power off while the lid is closed, and wakes them when it opens.">
+                                        Description="Asks every display to power off while the lid is closed, and wakes them when it opens. Skipped on Modern Standby PCs, where turning displays off puts the PC to sleep.">
                             <c:ToggleSwitch IsChecked="{Binding DisplaysOffOnLidClose, Mode=TwoWay}" AutomationProperties.Name="Turn displays off on lid close" />
                         </c:SettingsCard>
                         <c:SettingsCard Header="Power saving while the lid is closed" Icon="&#xE83F;"

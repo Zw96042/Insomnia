@@ -20,6 +20,13 @@ namespace Insomnia.Windows.Power;
 /// one-shot display-required execution state and a zero-distance mouse move,
 /// because recent builds ignore <c>SC_MONITORPOWER</c> on (-1) and wake the
 /// panel only on input.
+///
+/// On Modern Standby machines both are skipped. Windows treats
+/// <c>SC_MONITORPOWER</c> off like a power button press there: it enters
+/// standby and, a few seconds later, sleeps despite the keep-awake request,
+/// which stops the very work the session is for. The closed lid already
+/// darkens the built-in panel, and an idle timeout turns the display off
+/// without sleeping.
 /// </remarks>
 public sealed class DisplayControl : IDisplayControl, IDisposable
 {
@@ -31,9 +38,19 @@ public sealed class DisplayControl : IDisplayControl, IDisposable
     private WindowThread? _window;
     private bool _windowFailed;
     private bool _disposed;
+    private bool _skipLogged;
 
     public void RequestDisplaysOff()
     {
+        if (PowerCapabilities.ModernStandby)
+        {
+            if (!_skipLogged)
+            {
+                Log.Info("Display: Modern Standby; leaving displays to Windows, since turning them off would start standby");
+                _skipLogged = true;
+            }
+            return;
+        }
         try
         {
             SendMonitorPower(MonitorOff);
@@ -46,6 +63,10 @@ public sealed class DisplayControl : IDisplayControl, IDisposable
 
     public void WakeDisplays()
     {
+        if (PowerCapabilities.ModernStandby)
+        {
+            return;
+        }
         try
         {
             SendMonitorPower(MonitorOn);

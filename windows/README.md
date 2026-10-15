@@ -156,7 +156,9 @@ undoes them. **The timer keeps counting while the lid is closed.**
   the menu offers **Stop waiting for \<device\>**.
 - **Displays off (default on).** Windows already turns the built-in panel
   off when the lid closes. Insomnia also asks external displays to power
-  off, and wakes them on open.
+  off, and wakes them on open. Skipped on Modern Standby laptops: there,
+  turning the displays off starts standby, and Windows sleeps a few seconds
+  later despite the keep-awake request.
 - **Power saving (default on).** **Best power efficiency**, so a closed
   laptop does not keep running at full speed.
 

@@ -187,7 +187,10 @@ surface, before any release claims them:
 - **Modern Standby (S0ix) laptops:** check that a session with the lid closed
   keeps network-bound work running. Windows can still enter Modern Standby
   when the display turns off. A system-required power request is documented
-  to prevent idle-initiated standby, but firmware varies.
+  to prevent idle-initiated standby, but firmware varies. A display-off from
+  `SC_MONITORPOWER` is not idle-initiated: Windows logs it as standby entry
+  reason 3 (Kernel-Power 506) and sleeps about 5 s later despite the
+  request, so the displays-off lid action is skipped on Modern Standby.
 - **Lid-close action:** check that Do nothing applies immediately after
   `PowerSetActiveScheme` and is restored at end, quit, crash, and reboot.
 - **Freezing:** check that Slack and Discord resume intact (no relaunch,
