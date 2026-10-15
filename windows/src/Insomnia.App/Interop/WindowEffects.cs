@@ -92,7 +92,12 @@ internal static class WindowEffects
         return false;
     }
 
-    /// <summary>Keep a window out of Alt+Tab and the taskbar (flyouts and menus).</summary>
+    /// <summary>
+    /// Keep a window out of Alt+Tab and the taskbar (flyouts and menus), and
+    /// drop its system menu. A window whose glass frame is extended over the
+    /// whole client area otherwise gets DWM's own close button drawn in its
+    /// top-right corner.
+    /// </summary>
     public static void MakeToolWindow(Window window)
     {
         var hwnd = new WindowInteropHelper(window).Handle;
@@ -100,8 +105,13 @@ internal static class WindowEffects
         {
             return;
         }
-        var style = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt64();
-        style = (style | NativeMethods.WS_EX_TOOLWINDOW) & ~NativeMethods.WS_EX_APPWINDOW;
-        _ = NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, new IntPtr(style));
+        var exStyle = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE).ToInt64();
+        exStyle = (exStyle | NativeMethods.WS_EX_TOOLWINDOW) & ~NativeMethods.WS_EX_APPWINDOW;
+        _ = NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_EXSTYLE, new IntPtr(exStyle));
+
+        var style = NativeMethods.GetWindowLongPtr(hwnd, NativeMethods.GWL_STYLE).ToInt64();
+        _ = NativeMethods.SetWindowLongPtr(hwnd, NativeMethods.GWL_STYLE, new IntPtr(style & ~NativeMethods.WS_SYSMENU));
+        _ = NativeMethods.SetWindowPos(hwnd, IntPtr.Zero, 0, 0, 0, 0,
+            NativeMethods.SWP_NOMOVE | NativeMethods.SWP_NOSIZE | NativeMethods.SWP_NOZORDER | NativeMethods.SWP_NOACTIVATE | NativeMethods.SWP_FRAMECHANGED);
     }
 }

@@ -114,13 +114,17 @@ internal static partial class NativeMethods
     public const int WM_THEMECHANGED = 0x031A;
     public const int WM_DWMCOLORIZATIONCOLORCHANGED = 0x0320;
 
+    public const int GWL_STYLE = -16;
     public const int GWL_EXSTYLE = -20;
+    public const long WS_SYSMENU = 0x00080000;
     public const long WS_EX_TOOLWINDOW = 0x00000080;
     public const long WS_EX_APPWINDOW = 0x00040000;
 
     public const uint SWP_NOSIZE = 0x0001;
+    public const uint SWP_NOMOVE = 0x0002;
     public const uint SWP_NOZORDER = 0x0004;
     public const uint SWP_NOACTIVATE = 0x0010;
+    public const uint SWP_FRAMECHANGED = 0x0020;
 
     public const uint MONITOR_DEFAULTTONEAREST = 2;
     public const uint MONITOR_DEFAULTTOPRIMARY = 1;
